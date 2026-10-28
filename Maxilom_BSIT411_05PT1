@@ -1,0 +1,154 @@
+import pygame
+from pygame.locals import *
+
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
+
+def draw_cube():
+    glBegin(GL_TRIANGLES)
+
+    glVertex3f(1, 1, 1)
+    glVertex3f(1, -1, 1)
+    glVertex3f(-1, -1, 1)
+    glVertex3f(1, 1, 1)
+    glVertex3f(-1, -1, 1)
+    glVertex3f(-1, 1, 1)
+
+    glVertex3f(1, 1, -1)
+    glVertex3f(-1, 1, -1)
+    glVertex3f(-1, -1, -1)
+    glVertex3f(1, 1, -1)
+    glVertex3f(-1, -1, -1)
+    glVertex3f(1, -1, -1)
+
+    glVertex3f(1, 1, 1)
+    glVertex3f(1, 1, -1)
+    glVertex3f(1, -1, -1)
+    glVertex3f(1, 1, 1)
+    glVertex3f(1, -1, -1)
+    glVertex3f(1, -1, 1)
+
+    glVertex3f(-1, 1, 1)
+    glVertex3f(-1, -1, 1)
+    glVertex3f(-1, -1, -1)
+    glVertex3f(-1, 1, 1)
+    glVertex3f(-1, -1, -1)
+    glVertex3f(-1, 1, -1)
+
+    glVertex3f(1, 1, 1)
+    glVertex3f(-1, 1, 1)
+    glVertex3f(-1, 1, -1)
+    glVertex3f(1, 1, 1)
+    glVertex3f(-1, 1, -1)
+    glVertex3f(1, 1, -1)
+
+    glVertex3f(1, -1, 1)
+    glVertex3f(1, -1, -1)
+    glVertex3f(-1, -1, -1)
+    glVertex3f(1, -1, 1)
+    glVertex3f(-1, -1, -1)
+    glVertex3f(-1, -1, 1)
+
+    glEnd()
+
+def draw_object():
+    colors = [(1.0, 0.50, 0.55),(1.0, 0.00, 0.00),(0.00, 0.00, 1.0),(1.0, 0.50, 0.00),(0.00, 1.0, 0.00),]
+
+    cube_scale = 0.45
+    cube_spacing = cube_scale * 2
+
+    for i, color in enumerate(colors):
+        glPushMatrix()
+
+        glTranslatef((i - 2) * cube_spacing, 0, 0)
+
+        glScalef(cube_scale, cube_scale, cube_scale)
+
+        glColor3f(*color)
+        draw_cube()
+
+        glPopMatrix()
+
+def main():
+    pygame.init()
+
+    display = (800, 600)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.display.set_caption("BSIT411_05PT1_MaxilomArcadio")
+
+    glEnable(GL_DEPTH_TEST)
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(45, display[0] / display[1], 0.1, 100.0)
+    glMatrixMode(GL_MODELVIEW)
+
+    clock = pygame.time.Clock()
+
+    x_position = 0.0
+    y_position = 0.0
+    object_scale = 1.0
+
+    rotation_x = 0.0
+    rotation_y = 0.0
+    rotation_z = 0.0
+    rotating = True
+
+    running = True
+    while running:
+        dt = clock.tick(60) / 1000.0
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.key == pygame.K_SPACE:
+                    rotating = not rotating
+                elif event.key == pygame.K_r:
+                    x_position = 0.0
+                    y_position = 0.0
+                    object_scale = 1.0
+                    rotation_x = rotation_y = rotation_z = 0.0
+                    rotating = True
+        keys = pygame.key.get_pressed()
+        movement_speed = 3.0
+        scaling_speed = 0.8
+
+        if keys[pygame.K_LEFT]:
+            x_position -= movement_speed * dt
+        if keys[pygame.K_RIGHT]:
+            x_position += movement_speed * dt
+        if keys[pygame.K_UP]:
+            y_position += movement_speed * dt
+        if keys[pygame.K_DOWN]:
+            y_position -= movement_speed * dt
+        if keys[pygame.K_q]:
+            object_scale -= scaling_speed * dt
+        if keys[pygame.K_e]:
+            object_scale += scaling_speed * dt
+        object_scale = max(0.25, min(object_scale, 3.0))
+        if rotating:
+            rotation_x = (rotation_x + 25 * dt) % 360
+            rotation_y = (rotation_y + 55 * dt) % 360
+            rotation_z = (rotation_z + 10 * dt) % 360
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glLoadIdentity()
+
+        glTranslatef(x_position, y_position, -15)
+        glRotatef(rotation_x, 1, 0, 0)
+        glRotatef(rotation_y, 0, 1, 0)
+        glRotatef(rotation_z, 0, 0, 1)
+        glScalef(object_scale, object_scale, object_scale)
+
+        draw_object()
+        pygame.display.flip()
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
